@@ -1,6 +1,6 @@
 "use client";
+import Link from "next/link"; 
 import { useEffect, useState } from "react";
-
 interface Todo {
   id: string;
   title: string;
@@ -107,13 +107,14 @@ export default function Home() {
       >
         <h1>TODO CRUD Next.js</h1>
         <nav style={{ display: "flex", gap: "16px" }}>
-          <a href="/" style={{ color: "white", textDecoration: "none" }}>
+          <Link href="/" style={{ color: "white", textDecoration: "none" }}>
             Home
-          </a>
-          <a href="/about" style={{ color: "white", textDecoration: "none" }}>
+          </Link>
+          <Link href="/about" style={{ color: "white", textDecoration: "none" }}>
             About
-          </a>
+          </Link>
         </nav>
+
       </header>
 
       {/* Main */}
