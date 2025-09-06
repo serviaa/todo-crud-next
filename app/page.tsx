@@ -1,102 +1,333 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
+
+interface Todo {
+  id: string;
+  title: string;
+  done: boolean;
+  createdAt: string;
+  dueDate?: string;
+  subject?: string;
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [title, setTitle] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [subject, setSubject] = useState("");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDueDate, setEditDueDate] = useState("");
+  const [editSubject, setEditSubject] = useState("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
+  async function refresh() {
+    const res = await fetch("/api/todos");
+    setTodos(await res.json());
+  }
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  async function addTodo(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim()) return;
+    await fetch("/api/todos", {
+      method: "POST",
+      body: JSON.stringify({ title, dueDate, subject }),
+    });
+    setTitle("");
+    setDueDate("");
+    setSubject("");
+    refresh();
+  }
+
+  async function toggle(id: string, done: boolean) {
+    await fetch("/api/todos", {
+      method: "PUT",
+      body: JSON.stringify({ id, done: !done }),
+    });
+    refresh();
+  }
+
+  function startEdit(todo: Todo) {
+    setEditId(todo.id);
+    setEditTitle(todo.title);
+    setEditDueDate(todo.dueDate ? todo.dueDate.split("T")[0] : "");
+    setEditSubject(todo.subject || "");
+  }
+
+  async function saveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editId) return;
+    await fetch("/api/todos", {
+      method: "PUT",
+      body: JSON.stringify({
+        id: editId,
+        title: editTitle,
+        dueDate: editDueDate,
+        subject: editSubject,
+      }),
+    });
+    setEditId(null);
+    setEditTitle("");
+    setEditDueDate("");
+    setEditSubject("");
+    refresh();
+  }
+
+  async function remove(id: string) {
+    await fetch("/api/todos", {
+      method: "DELETE",
+      body: JSON.stringify({ id }),
+    });
+    refresh();
+  }
+
+  return (
+    <div
+      style={{
+        fontFamily: "system-ui",
+        background: "#f9f9f9",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {/* Navbar */}
+      <header
+        style={{
+          background: "#000",
+          padding: "16px 32px",
+          color: "white",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h1>TODO CRUD Next.js</h1>
+        <nav style={{ display: "flex", gap: "16px" }}>
+          <a href="/" style={{ color: "white", textDecoration: "none" }}>
+            Home
           </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
+          <a href="/about" style={{ color: "white", textDecoration: "none" }}>
+            About
           </a>
-        </div>
+        </nav>
+      </header>
+
+      {/* Main */}
+      <main
+        style={{
+          flex: 1,
+          maxWidth: 700,
+          margin: "40px auto",
+          padding: "16px",
+          borderRadius: "12px",
+          background: "white",
+          border: "1px solid #ddd",
+          width: "100%",
+        }}
+      >
+        <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Daftar Tugas</h2>
+
+        {/* Form tambah todo */}
+        <form onSubmit={addTodo} style={{ display: "grid", gap: "8px", marginBottom: "16px" }}>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Judul tugas..."
+            required
+            style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ccc" }}
+          />
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ccc" }}
+          />
+          <select
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ccc" }}
+          >
+            <option value="">Pilih Mapel</option>
+            <option value="PaaS">PaaS (Platform as a Service)</option>
+            <option value="SaaS">SaaS (Software as a Service)</option>
+            <option value="IaaS">IaaS (Infrastructure as a Service)</option>
+            <option value="IoT">IoT (Internet of Things)</option>
+            <option value="PKK">PKK (Produk Kreatif & Kewirausahaan)</option>
+            <option value="MPP">MPP (Mata Pelajaran Pilihan)</option>
+          </select>
+          <button
+            style={{
+              padding: "10px",
+              borderRadius: "6px",
+              border: "none",
+              background: "#000",
+              color: "white",
+              cursor: "pointer",
+            }}
+          >
+            Tambah
+          </button>
+        </form>
+
+        {/* Daftar todo */}
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {todos.length === 0 && (
+            <p style={{ textAlign: "center", color: "#888" }}>Belum ada todo 🙌</p>
+          )}
+          {todos.map((t) => (
+            <li
+              key={t.id}
+              style={{
+                marginBottom: "12px",
+                padding: "12px",
+                border: "1px solid #eee",
+                borderRadius: "8px",
+                background: "#fafafa",
+              }}
+            >
+              {editId === t.id ? (
+                <form onSubmit={saveEdit} style={{ display: "grid", gap: "8px" }}>
+                  <input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ccc" }}
+                  />
+                  <input
+                    type="date"
+                    value={editDueDate}
+                    onChange={(e) => setEditDueDate(e.target.value)}
+                    style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ccc" }}
+                  />
+                  <select
+                    value={editSubject}
+                    onChange={(e) => setEditSubject(e.target.value)}
+                    style={{ padding: "8px", borderRadius: "6px", border: "1px solid #ccc" }}
+                  >
+                    <option value="">Pilih Mapel</option>
+                    <option value="PaaS">PaaS (Platform as a Service)</option>
+                    <option value="SaaS">SaaS (Software as a Service)</option>
+                    <option value="IaaS">IaaS (Infrastructure as a Service)</option>
+                    <option value="IoT">IoT (Internet of Things)</option>
+                    <option value="PKK">PKK (Produk Kreatif & Kewirausahaan)</option>
+                    <option value="MPP">MPP (Mata Pelajaran Pilihan)</option>
+                  </select>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      style={{
+                        flex: 1,
+                        background: "black",
+                        border: "none",
+                        padding: "8px",
+                        borderRadius: "6px",
+                        color: "white",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✔ Simpan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditId(null)}
+                      style={{
+                        flex: 1,
+                        background: "gray",
+                        border: "none",
+                        padding: "8px",
+                        borderRadius: "6px",
+                        color: "white",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✖ Batal
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <input
+                        type="checkbox"
+                        checked={t.done}
+                        onChange={() => toggle(t.id, t.done)}
+                      />
+                      <span
+                        style={{
+                          textDecoration: t.done ? "line-through" : "none",
+                          color: t.done ? "#888" : "black",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {t.title}
+                      </span>
+                    </label>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        onClick={() => startEdit(t)}
+                        style={{
+                          background: "black",
+                          border: "none",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                          color: "white",
+                          cursor: "pointer",
+                        }}
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        onClick={() => remove(t.id)}
+                        style={{
+                          background: "gray",
+                          border: "none",
+                          padding: "4px 8px",
+                          borderRadius: "6px",
+                          color: "white",
+                          cursor: "pointer",
+                        }}
+                      >
+                        🗑 Hapus
+                      </button>
+                    </div>
+                  </div>
+                  <p style={{ marginLeft: "24px", marginTop: "4px", fontSize: "14px" }}>
+                    📅 {t.dueDate ? new Date(t.dueDate).toLocaleDateString() : "Tanpa tenggat"} | 📚{" "}
+                    {t.subject === "PaaS"
+                      ? "PaaS (Platform as a Service)"
+                      : t.subject === "SaaS"
+                      ? "SaaS (Software as a Service)"
+                      : t.subject === "IaaS"
+                      ? "IaaS (Infrastructure as a Service)"
+                      : t.subject === "IoT"
+                      ? "IoT (Internet of Things)"
+                      : t.subject === "PKK"
+                      ? "PKK (Produk Kreatif & Kewirausahaan)"
+                      : t.subject === "MPP"
+                      ? "MPP (Mata Pelajaran Pilihan)"
+                      : "Tanpa mapel"}
+                  </p>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer
+        style={{
+          marginTop: "auto",
+          padding: "16px",
+          textAlign: "center",
+          background: "#111",
+          color: "white",
+        }}
+      >
+        <p>© 2025 TODO CRUD Next.js</p>
       </footer>
     </div>
   );
