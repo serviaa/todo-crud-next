@@ -24,8 +24,8 @@ export default function Home() {
 
   async function refresh() {
   const res = await fetch("/api/todos");
-  const data: Todo[] = await res.json(); // kasih tipe di sini
-  const normalized = data.map((t) => ({
+  const data: RawTodo[] = await res.json();
+  const normalized: Todo[] = data.map((t) => ({
     ...t,
     activities: Array.isArray(t.activities)
       ? t.activities
