@@ -18,16 +18,27 @@ export default function Home() {
     { time: "", activity: "" },
   ]);
 
+  // modal edit
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+
   async function refresh() {
     const res = await fetch("/api/todos");
     const data = await res.json();
-    setTodos(data);
+    const normalized = data.map((t: any) => ({
+      ...t,
+      activities: Array.isArray(t.activities)
+        ? t.activities
+        : JSON.parse(t.activities || "[]"),
+    }));
+    setTodos(normalized);
   }
 
   useEffect(() => {
     refresh();
   }, []);
 
+  // CREATE
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     await fetch("/api/todos", {
@@ -41,20 +52,53 @@ export default function Home() {
     refresh();
   }
 
-  async function toggleActivity(id: number, done: boolean) {
+  // SAVE edit todo
+  async function saveTodo(todo: Todo) {
     await fetch("/api/todos", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, done: !done }),
+      body: JSON.stringify({
+        type: "todo",
+        id: todo.id,
+        title: todo.title,
+        deskripsi: todo.deskripsi,
+      }),
     });
+    setEditingTodo(null);
     refresh();
   }
 
+  // SAVE edit activity
+  async function saveActivity(activity: Activity) {
+    await fetch("/api/todos", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "activity",
+        id: activity.id,
+        time: activity.time,
+        activity: activity.activity,
+        done: activity.done,
+      }),
+    });
+    setEditingActivity(null);
+    refresh();
+  }
+
+  // DELETE
   async function removeTodo(id: number) {
     await fetch("/api/todos", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ type: "todo", id }),
+    });
+    refresh();
+  }
+  async function removeActivity(id: number) {
+    await fetch("/api/todos", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "activity", id }),
     });
     refresh();
   }
@@ -63,18 +107,17 @@ export default function Home() {
     setActivities([...activities, { time: "", activity: "" }]);
   };
 
-  const handleChange = (i: number, field: keyof Activity, value: string) => {
+  const handleChange = (i: number, field: "time" | "activity", value: string) => {
     const updated = [...activities];
-    (updated[i][field] as string) = value;
+    updated[i][field] = value;
     setActivities(updated);
   };
-
 
   return (
     <div className="todo-container">
       <h1 className="page-title">Manage Your Todos</h1>
 
-      {/* Form */}
+      {/* CREATE */}
       <form onSubmit={handleSubmit} className="form">
         <input
           value={title}
@@ -104,25 +147,42 @@ export default function Home() {
           </div>
         ))}
 
-        <button type="button" onClick={addActivity} className="btn-outline">
-          + Tambah kegiatan
-        </button>
-        <button type="submit" className="btn-primary">
-          Simpan
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button type="button" onClick={addActivity} className="btn-outline">
+            + Tambah kegiatan
+          </button>
+          <button type="submit" className="btn-primary">
+            Simpan
+          </button>
+        </div>
       </form>
 
-      {/* Daftar todos */}
+      {/* LIST */}
       <ul className="todo-list">
         {todos.map((t) => (
           <li key={t.id} className="todo-card">
             <div className="todo-header">
               <span className="todo-title">{t.title}</span>
-              <button onClick={() => removeTodo(t.id)} className="btn-delete">
-                ✕
-              </button>
+              <div className="todo-actions">
+                <button
+                  type="button"
+                  onClick={() => setEditingTodo(t)}
+                  className="btn-edit"
+                >
+                  ✎
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeTodo(t.id)}
+                  className="btn-delete"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
+
             {t.deskripsi && <p className="todo-desc">{t.deskripsi}</p>}
+
             {t.activities.length > 0 && (
               <ul className="activity-list">
                 {t.activities.map((a) => (
@@ -130,7 +190,9 @@ export default function Home() {
                     <input
                       type="checkbox"
                       checked={a.done || false}
-                      onChange={() => toggleActivity(a.id!, a.done || false)}
+                      onChange={() =>
+                        saveActivity({ ...a, done: !(a.done ?? false) })
+                      }
                     />
                     <span
                       className={`activity-text ${
@@ -139,6 +201,20 @@ export default function Home() {
                     >
                       <strong>{a.time}</strong> {a.activity}
                     </span>
+                    <div className="activity-actions">
+                      <button
+                        type="button"
+                        onClick={() => setEditingActivity(a)}
+                      >
+                        ✎
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeActivity(a.id!)}
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -146,6 +222,87 @@ export default function Home() {
           </li>
         ))}
       </ul>
+
+      {/* MODAL EDIT TODO */}
+      {editingTodo && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Edit Todo</h2>
+            <input
+              value={editingTodo.title}
+              onChange={(e) =>
+                setEditingTodo({ ...editingTodo, title: e.target.value })
+              }
+              placeholder="Judul Todo"
+            />
+            <textarea
+              value={editingTodo.deskripsi ?? ""}
+              onChange={(e) =>
+                setEditingTodo({ ...editingTodo, deskripsi: e.target.value })
+              }
+              placeholder="Deskripsi"
+            />
+            <div className="edit-actions">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => saveTodo(editingTodo)}
+              >
+                Simpan
+              </button>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => setEditingTodo(null)}
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL EDIT ACTIVITY */}
+      {editingActivity && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Edit Activity</h2>
+            <input
+              value={editingActivity.time}
+              onChange={(e) =>
+                setEditingActivity({ ...editingActivity, time: e.target.value })
+              }
+              placeholder="Waktu"
+            />
+            <input
+              value={editingActivity.activity}
+              onChange={(e) =>
+                setEditingActivity({
+                  ...editingActivity,
+                  activity: e.target.value,
+                })
+              }
+              placeholder="Aktivitas"
+            />
+            <div className="edit-actions">
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => saveActivity(editingActivity)}
+              >
+                Simpan
+              </button>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => setEditingActivity(null)}
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

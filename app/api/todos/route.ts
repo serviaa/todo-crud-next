@@ -16,11 +16,10 @@ export async function GET() {
     GROUP BY t.id
     ORDER BY t.created_at DESC
   `);
-
   return NextResponse.json(result.rows);
 }
 
-// POST tambah todo baru
+// CREATE todo
 export async function POST(req: Request) {
   const { title, deskripsi, activities } = await req.json();
 
@@ -46,16 +45,38 @@ export async function POST(req: Request) {
   return NextResponse.json({ success: true, id: todoId }, { status: 201 });
 }
 
-// PUT update status done activity
+// UPDATE todo / activity
 export async function PUT(req: Request) {
-  const { id, done } = await req.json();
-  await pool.query(`UPDATE activities SET done=$1 WHERE id=$2`, [done, id]);
+  const { type, id, title, deskripsi, time, activity, done } = await req.json();
+
+  if (type === "todo") {
+    await pool.query(
+      `UPDATE todos SET title = $1, deskripsi = $2 WHERE id = $3`,
+      [title, deskripsi || null, id]
+    );
+  }
+
+  if (type === "activity") {
+    await pool.query(
+      `UPDATE activities SET time = $1, activity = $2, done = $3 WHERE id = $4`,
+      [time, activity, done, id]
+    );
+  }
+
   return NextResponse.json({ success: true });
 }
 
-// DELETE hapus todo (otomatis hapus activities via CASCADE)
+// DELETE todo / activity
 export async function DELETE(req: Request) {
-  const { id } = await req.json();
-  await pool.query(`DELETE FROM todos WHERE id=$1`, [id]);
+  const { type, id } = await req.json();
+
+  if (type === "todo") {
+    await pool.query(`DELETE FROM todos WHERE id = $1`, [id]);
+  }
+
+  if (type === "activity") {
+    await pool.query(`DELETE FROM activities WHERE id = $1`, [id]);
+  }
+
   return NextResponse.json({ success: true });
 }

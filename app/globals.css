@@ -1,116 +1,182 @@
-/* Global Styles */
+/* Gunakan sistem font agar ringan */
 body {
-  margin: 0;
-  font-family: "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: #111;
   color: #eee;
-}
-
-/* Navbar */
-.navbar {
-  background: #1c1c1c;
-  border-bottom: 1px solid #333;
-  padding: 16px 32px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-.navbar ul {
-  list-style: none;
-  display: flex;
-  gap: 24px;
   margin: 0;
   padding: 0;
 }
+
+/* Header */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 40px;
+  background: #1c1c1c;
+  border-bottom: 1px solid #333;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f5f5f5;
+  letter-spacing: 0.5px;
+}
+
+.navbar {
+  display: flex;
+  gap: 24px;
+}
+
 .navbar a {
   text-decoration: none;
-  color: #eee;
+  color: #ccc;
   font-weight: 500;
   transition: color 0.2s ease;
 }
+
 .navbar a:hover {
-  color: #bbb;
+  color: #fff;
 }
 
-/* Main */
-.main {
-  min-height: calc(100vh - 120px);
-  padding: 32px;
+/* Atur body dan html agar footer bisa sticky */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1; /* konten akan ambil ruang sisa */
 }
 
 /* Footer */
-.footer {
-  background: #1c1c1c;
-  border-top: 1px solid #333;
+.site-footer {
   text-align: center;
-  padding: 16px;
-  font-size: 14px;
+  padding: 12px 20px; /* kecilkan padding biar rapih */
+  font-size: 13px;
+  background: #1c1c1c;
   color: #aaa;
+  border-top: 1px solid #333;
 }
 
-/* About Page */
-.about {
-  max-width: 700px;
-  margin: auto;
+
+/* Container utama */
+.about-container {
+  max-width: 780px;
+  margin: 50px auto;
+  padding: 32px;
   background: #1c1c1c;
-  padding: 24px;
   border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  color: #ddd;
+  line-height: 1.8;
 }
-.about h1 {
-  font-size: 24px;
-  margin-bottom: 16px;
+
+/* Judul utama */
+.about-container h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 30px;
+  font-weight: 700;
   color: #f5f5f5;
+  letter-spacing: 1px;
 }
-.about p {
-  font-size: 16px;
-  line-height: 1.6;
+
+/* Subjudul */
+.about-container h2 {
+  margin-top: 28px;
+  margin-bottom: 12px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #f5f5f5;
+  border-left: 4px solid #888;
+  padding-left: 10px;
+}
+
+/* Paragraf */
+.about-container p {
+  margin-bottom: 16px;
+  font-size: 15px;
+  color: #ccc;
+  text-align: justify;
+}
+
+/* List */
+.about-container ul {
+  padding-left: 22px;
+  margin-bottom: 18px;
+}
+
+.about-container ul li {
+  margin-bottom: 10px;
+  font-size: 15px;
+  list-style: disc;
   color: #ddd;
 }
 
-.todo-container {
-  max-width: 700px;
-  margin: auto;
+/* Highlight */
+.about-container strong {
+  color: #fff;
+  font-weight: 600;
 }
 
+.about-container em {
+  color: #aaa;
+  font-style: italic;
+}
+
+
+/* Form & container */
+
+.todo-container {
+  max-width: 900px;
+  margin: 32px auto;
+  padding: 0 20px;
+}
 .page-title {
   text-align: center;
   font-size: 26px;
   font-weight: 600;
   margin-bottom: 24px;
-  color: #f5f5f5;
+  color: var(--text);
 }
 
 .form {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: #1c1c1c;
+  background: var(--card);
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 32px;
 }
-
 .form input,
 .form textarea {
   width: 100%;
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #444;
-  background: #2a2a2a;
-  color: #eee;
+  background: var(--input);
+  color: var(--text);
 }
-
 .form input:focus,
 .form textarea:focus {
   outline: none;
   border-color: #666;
 }
-
 .activity-input {
   display: flex;
   gap: 8px;
 }
 
+/* buttons */
 .btn-outline {
   border: 1px solid #555;
   background: transparent;
@@ -119,11 +185,7 @@ body {
   border-radius: 6px;
   cursor: pointer;
 }
-
-.btn-outline:hover {
-  background: #2a2a2a;
-}
-
+.btn-outline:hover { background: #2a2a2a; }
 .btn-primary {
   background: #f5f5f5;
   color: #111;
@@ -133,11 +195,9 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
+.btn-primary:hover { background: #ddd; }
 
-.btn-primary:hover {
-  background: #ddd;
-}
-
+/* todo cards */
 .todo-list {
   list-style: none;
   padding: 0;
@@ -146,83 +206,136 @@ body {
   flex-direction: column;
   gap: 16px;
 }
-
 .todo-card {
-  background: #1c1c1c;
+  background: var(--card);
   padding: 16px;
   border-radius: 12px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
-
 .todo-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
 }
-
 .todo-title {
   font-size: 18px;
-  font-weight: bold;
-  color: #f5f5f5;
+  font-weight: 600;
 }
-
-.btn-delete {
-  background: none;
-  border: none;
-  color: #aaa;
-  cursor: pointer;
-  font-size: 18px;
-}
-
-.btn-delete:hover {
-  color: #f55;
-}
-
 .todo-desc {
   font-size: 14px;
   margin-bottom: 8px;
   color: #bbb;
 }
-
-.activity-list {
-  margin: 10px 0 0 0;
-  padding: 0;
-  list-style: none;
+.todo-actions { display:flex; gap:8px; }
+.btn-edit, .btn-delete {
+  background: none; border: none; cursor: pointer; color: var(--muted); font-size: 16px;
 }
+.btn-edit:hover { color: #8fb3ff; } /* subtle */
+.btn-delete:hover { color: #ff7b7b; }
 
+/* activities */
+.activity-list { margin: 10px 0 0 0; padding: 0; list-style:none; }
 .activity-item {
   display: grid;
-  grid-template-columns: 24px 1fr; /* checkbox kiri, teks kanan */
+  grid-template-columns: 24px 1fr auto;
   align-items: center;
   gap: 12px;
   padding: 6px 0;
-  border-bottom: 1px solid #2a2a2a;
+  border-bottom: 1px solid var(--border);
 }
-
-.activity-item:last-child {
-  border-bottom: none;
-}
+.activity-item:last-child { border-bottom: none; }
 
 .activity-item input[type="checkbox"] {
-  accent-color: #eee; /* monokrom (putih abu) */
+  accent-color: #eee;
   cursor: pointer;
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
-.activity-text {
+.activity-text { font-size: 15px; color: #ddd; line-height: 1.4; }
+.activity-text strong { color: #aaa; margin-right:6px; font-weight:500; }
+.activity-done { text-decoration: line-through; color: #777; }
+
+.activity-actions { display:flex; gap:6px; }
+.activity-actions button { background:none; border:none; cursor:pointer; color:var(--muted); font-size:14px; }
+.activity-actions button:hover:first-child { color:#8fb3ff; }
+.activity-actions button:hover:last-child { color:#ff7b7b; }
+
+/* modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal box */
+.modal {
+  background: #1c1c1c;
+  padding: 24px;
+  border-radius: 12px;
+  width: 420px;
+  max-width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* biar input full lebar */
+  gap: 16px; /* konsisten spacing */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.modal h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center; /* judul modal center */
+  color: #f5f5f5;
+}
+
+.modal input,
+.modal textarea {
+  width: 100%;
+  box-sizing: border-box; /* pastikan padding dihitung */
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #2a2a2a;
+  color: #eee;
   font-size: 15px;
-  color: #ddd;
-  line-height: 1.4;
 }
 
-.activity-text strong {
-  color: #aaa;
-  margin-right: 6px;
-  font-weight: 500;
+.modal input:focus,
+.modal textarea:focus {
+  outline: none;
+  border-color: #666;
 }
 
-.activity-done {
-  text-decoration: line-through;
-  color: #666;
+.modal textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end; /* tombol rata kanan */
+  gap: 10px;
 }
