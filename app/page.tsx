@@ -23,16 +23,17 @@ export default function Home() {
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
 
   async function refresh() {
-    const res = await fetch("/api/todos");
-    const data = await res.json();
-    const normalized = data.map((t: any) => ({
-      ...t,
-      activities: Array.isArray(t.activities)
-        ? t.activities
-        : JSON.parse(t.activities || "[]"),
-    }));
-    setTodos(normalized);
-  }
+  const res = await fetch("/api/todos");
+  const data: Todo[] = await res.json(); // kasih tipe di sini
+  const normalized = data.map((t) => ({
+    ...t,
+    activities: Array.isArray(t.activities)
+      ? t.activities
+      : JSON.parse(t.activities || "[]"),
+  }));
+  setTodos(normalized);
+}
+
 
   useEffect(() => {
     refresh();
