@@ -1,37 +1,61 @@
-import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { NextResponse } from "next/server";
 
+// GET semua todo + activities
 export async function GET() {
-  const { rows } = await pool.query('SELECT * FROM "Todo" ORDER BY "createdAt" DESC');
-  return NextResponse.json(rows);
+  const result = await pool.query(`
+    SELECT t.id, t.title, t.deskripsi, t.created_at,
+           COALESCE(json_agg(json_build_object(
+             'id', a.id,
+             'time', a.time,
+             'activity', a.activity,
+             'done', a.done
+           )) FILTER (WHERE a.id IS NOT NULL), '[]') AS activities
+    FROM todos t
+    LEFT JOIN activities a ON t.id = a.todo_id
+    GROUP BY t.id
+    ORDER BY t.created_at DESC
+  `);
+
+  return NextResponse.json(result.rows);
 }
 
-export async function POST(req: NextRequest) {
-  const { title, dueDate, subject } = await req.json();
-  await pool.query(
-    'INSERT INTO "Todo" ("id","title","done","createdAt","dueDate","subject") VALUES (gen_random_uuid(), $1, false, NOW(), $2, $3)',
-    [title, dueDate || null, subject || null]
+// POST tambah todo baru
+export async function POST(req: Request) {
+  const { title, deskripsi, activities } = await req.json();
+
+  const inserted = await pool.query(
+    `INSERT INTO todos (title, deskripsi)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [title, deskripsi || null]
   );
-  return NextResponse.json({ ok: true }, { status: 201 });
-}
 
-export async function PUT(req: NextRequest) {
-  const { id, done, title, dueDate, subject } = await req.json();
+  const todoId = inserted.rows[0].id;
 
-  if (title !== undefined || dueDate !== undefined || subject !== undefined) {
-    await pool.query(
-      'UPDATE "Todo" SET "title"=COALESCE($1,"title"), "dueDate"=COALESCE($2,"dueDate"), "subject"=COALESCE($3,"subject") WHERE "id"=$4',
-      [title, dueDate, subject, id]
-    );
-  } else {
-    await pool.query('UPDATE "Todo" SET "done"=$1 WHERE "id"=$2', [done, id]);
+  if (activities?.length) {
+    for (const act of activities) {
+      await pool.query(
+        `INSERT INTO activities (todo_id, time, activity, done)
+         VALUES ($1, $2, $3, false)`,
+        [todoId, act.time, act.activity]
+      );
+    }
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ success: true, id: todoId }, { status: 201 });
 }
 
-export async function DELETE(req: NextRequest) {
+// PUT update status done activity
+export async function PUT(req: Request) {
+  const { id, done } = await req.json();
+  await pool.query(`UPDATE activities SET done=$1 WHERE id=$2`, [done, id]);
+  return NextResponse.json({ success: true });
+}
+
+// DELETE hapus todo (otomatis hapus activities via CASCADE)
+export async function DELETE(req: Request) {
   const { id } = await req.json();
-  await pool.query('DELETE FROM "Todo" WHERE "id"=$1', [id]);
-  return NextResponse.json({ ok: true });
+  await pool.query(`DELETE FROM todos WHERE id=$1`, [id]);
+  return NextResponse.json({ success: true });
 }
