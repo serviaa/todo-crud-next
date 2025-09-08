@@ -65,9 +65,10 @@ export default function Home() {
 
   const handleChange = (i: number, field: keyof Activity, value: string) => {
     const updated = [...activities];
-    updated[i][field] = value;
+    (updated[i][field] as string) = value;
     setActivities(updated);
   };
+
 
   return (
     <div className="todo-container">

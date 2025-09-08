@@ -30,7 +30,7 @@ export default function RootLayout({
         <main className="main">{children}</main>
 
         <footer className="footer">
-          <p>© {new Date().getFullYear()} Todo Project · Built with Next.js & Neon</p>
+          <p>© {new Date().getFullYear()} Todo Project · Built with love</p>
         </footer>
       </body>
     </html>
